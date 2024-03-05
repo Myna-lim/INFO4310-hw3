@@ -1,5 +1,6 @@
 <html>
-    <h3>Carly Hu (ch862) Myna Lim (ml2326) HW 3</h3>
+    <h5 style="margin-bottom: 0px">Carly Hu (ch862) Myna Lim (ml2326) HW 3</h5>
+    <h2 style="margin-top: 3px; margin-bottom: 0px;">FoodE</h2>
     <head>
         <script src="https://d3js.org/d3.v7.min.js"></script>
         <script src="https://d3js.org/topojson.v3.min.js"></script>
@@ -37,21 +38,25 @@
     .gridlines .domain {
     stroke: none;
     }
+
+    .choropleth{
+        margin-top: 0px;
+    }
     </style>
 
     <body>
 
 
         <p id="1_vis">
-             </br>
-            <svg id="choropleth" height="580" width="700"  style="margin:0px; border:1px solid gray;" ></svg>
+            <svg id="choropleth" height="670" width="900"  style="margin:0px; border:1px solid gray;" ></svg>
+            <svg id="panel" height="670" width="500"  style="margin:0px; border:1px solid gray;" ></svg>
             <ul id="scales"></ul>
           <script>
             const svg = d3.select("#choropleth");
             const map = svg.append("g");
             const width = svg.attr("width");
             const height = svg.attr("height");
-            const margin = { top: 90, right: 20, bottom: 20, left:0};
+            const margin = { top: 100, right: 20, bottom: 20, left:0};
             const mapWidth = width - margin.left - margin.right;
             const mapHeight = height - margin.top - margin.bottom;
 
@@ -59,7 +64,7 @@
 
             var projection = d3.geoAlbers()
                                         .scale(190000)
-                                        .rotate([71.057, 0])
+                                         .rotate([71.057, 0])
                                         .center([0, 42.313])
                                         .translate([width/2, height/2]);
 
@@ -90,6 +95,30 @@
                     .attr("opacity", 0.2)
                     .attr("d", path)
                     .style("fill",  "blue");
+
+            
+                var zoom = d3.zoom()
+                            .scaleExtent([1,20])
+                            .translateExtent([[-50,-50],[mapWidth+50,mapHeight+50]])
+                            .on("zoom", mapZoomed);
+
+                map.call(zoom);
+                map.call(zoom.transform, d3.zoomIdentity); 
+                
+                function mapZoomed({transform}) {      
+                map.attr("transform", transform.toString() );
+
+                map.select(".state-outline")
+                            .style("stroke-width", 2 / transform.k);
+                map.select(".county-outline")
+                            .style("stroke-width", 1 / transform.k);
+
+                map.select(".county-outline")
+                            .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
+                map.selectAll(".county")
+                            .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
+
+                }
 
             } 
             requestData();
