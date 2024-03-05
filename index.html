@@ -1,0 +1,99 @@
+<html>
+    <h3>Carly Hu (ch862) Myna Lim (ml2326) HW 3</h3>
+    <head>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://d3js.org/topojson.v3.min.js"></script>
+        <script src='neighborhoods.js'></script> <!-- Boston map from a different source 
+        https://github.com/maptimeBoston/d3-maptime/blob/gh-pages/example6/neighborhoods.js -->
+    </head>
+    <style>
+        * {
+            font-family: Verdana;
+        }
+
+    .gridlines line {
+        stroke: #bbb;
+      }
+      
+    .gridlines .domain {
+    stroke: none;
+    }
+
+    .state {
+      fill: lightgrey;
+    }
+
+    .neighbor_outline {
+      fill: none;
+      stroke: white;
+      stroke-width: 0.6px;
+    }
+
+
+    .gridlines line {
+        stroke: #bbb;
+      }
+      
+    .gridlines .domain {
+    stroke: none;
+    }
+    </style>
+
+    <body>
+
+
+        <p id="1_vis">
+             </br>
+            <svg id="choropleth" height="580" width="700"  style="margin:0px; border:1px solid gray;" ></svg>
+            <ul id="scales"></ul>
+          <script>
+            const svg = d3.select("#choropleth");
+            const map = svg.append("g");
+            const width = svg.attr("width");
+            const height = svg.attr("height");
+            const margin = { top: 90, right: 20, bottom: 20, left:0};
+            const mapWidth = width - margin.left - margin.right;
+            const mapHeight = height - margin.top - margin.bottom;
+
+            let annotations = svg.append("g").attr("id","annotations");
+
+            var projection = d3.geoAlbers()
+                                        .scale(190000)
+                                        .rotate([71.057, 0])
+                                        .center([0, 42.313])
+                                        .translate([width/2, height/2]);
+
+            var path = d3.geoPath()
+                            .projection(projection);
+
+            
+            map.selectAll('path')
+                    .data(neighborhoods_json.features)
+                    .enter()
+                    .append('path')
+                    .attr('fill', '#ccc')
+                    .attr('d', path);
+
+            const requestData = async function() {
+                const yelp = await d3.csv('yelp_boston.csv');
+
+                yelp.forEach( (d, i) => {
+                        d.position = projection( [d.longitude, d.latitude] );
+                        });
+
+                map.selectAll("circle")
+                    .data(yelp)
+                    .join("circle")
+                    .attr("cx", d => d.position[0])
+                    .attr("cy", d => d.position[1])
+                    .attr("r", 3)
+                    .attr("opacity", 0.2)
+                    .attr("d", path)
+                    .style("fill",  "blue");
+
+            } 
+            requestData();
+          </script>
+      </p>
+    </body>
+</html>
