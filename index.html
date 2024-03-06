@@ -9,34 +9,13 @@
     </head>
     <style>
         * {
-            font-family: Verdana;
+            font-family:Verdana, Geneva, Tahoma, sans-serif;
         }
-
-    .gridlines line {
-        stroke: #bbb;
-      }
-      
-    .gridlines .domain {
-    stroke: none;
-    }
-
-    .state {
-      fill: lightgrey;
-    }
 
     .neighbor_outline {
       fill: none;
       stroke: white;
       stroke-width: 0.6px;
-    }
-
-
-    .gridlines line {
-        stroke: #bbb;
-      }
-      
-    .gridlines .domain {
-    stroke: none;
     }
 
     .choropleth{
@@ -46,10 +25,9 @@
 
     <body>
 
-
         <p id="1_vis">
-            <svg id="choropleth" height="670" width="900"  style="margin:0px; border:1px solid gray;" ></svg>
-            <svg id="panel" height="670" width="500"  style="margin:0px; border:1px solid gray;" ></svg>
+            <svg id="choropleth" height="670" width="900"  style="margin:0px; border:1px solid gray; background-color:aliceblue" ></svg>
+            <svg id="panel" height="650" width="500"  style="margin:0px; border:1px solid gray; padding-top: 20px" ></svg>
             <ul id="scales"></ul>
           <script>
             const svg = d3.select("#choropleth");
@@ -64,20 +42,19 @@
 
             var projection = d3.geoAlbers()
                                         .scale(190000)
-                                         .rotate([71.057, 0])
+                                        .rotate([71.057, 0])
                                         .center([0, 42.313])
                                         .translate([width/2, height/2]);
 
-            var path = d3.geoPath()
-                            .projection(projection);
-
-            
+            var path = d3.geoPath().projection(projection);
             map.selectAll('path')
                     .data(neighborhoods_json.features)
                     .enter()
                     .append('path')
                     .attr('fill', '#ccc')
-                    .attr('d', path);
+                    .attr('d', path)
+                    .style("stroke", "black")
+                    .style("stroke-width", ".8px")
 
             const requestData = async function() {
                 const yelp = await d3.csv('yelp_boston.csv');
@@ -86,7 +63,7 @@
                         d.position = projection( [d.longitude, d.latitude] );
                         });
 
-                map.selectAll("circle")
+                let restaurants = map.selectAll("circle")
                     .data(yelp)
                     .join("circle")
                     .attr("cx", d => d.position[0])
@@ -106,19 +83,111 @@
                 map.call(zoom.transform, d3.zoomIdentity); 
                 
                 function mapZoomed({transform}) {      
-                map.attr("transform", transform.toString() );
+                      map.attr("transform", transform.toString() );
 
-                map.select(".state-outline")
-                            .style("stroke-width", 2 / transform.k);
-                map.select(".county-outline")
-                            .style("stroke-width", 1 / transform.k);
+                      map.select(".state-outline")
+                                  .style("stroke-width", 2 / transform.k);
+                      map.select(".county-outline")
+                                  .style("stroke-width", 1 / transform.k)
 
-                map.select(".county-outline")
-                            .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
-                map.selectAll(".county")
-                            .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
-
+                      map.select(".county-outline")
+                                  .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
+                      map.selectAll(".county")
+                                  .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
                 }
+
+                // FILTERING PANEL
+
+
+
+
+                // RESTAURANT-SPECIFIC PANEL
+                // hover functionality
+  
+                let label = map.append("text").attr("visibility","hidden")    
+
+                    restaurants.on("mouseover", function() {
+                        d3.select(this).attr("opacity", 1).attr("r", 8);
+                        
+                        let name = d3.select(this).datum()["name"]
+
+                        label.text(name) 
+                            .attr("x", (d3.select(this).datum().position[0] + 10) ) 
+                            .attr("y",(d3.select(this).datum().position[1]) + 5)
+                            .attr("visibility", "visible")
+                            .style("font-weight", "bold")
+                            .style("background-color", "white")
+                    });
+
+                    restaurants.on("mouseout", function() {
+                        d3.select(this).attr("opacity",0.2).attr("r", 3)
+                        label.text(""); 
+                    });   
+
+                // click functionality
+
+                    let restaurant_info = map.append("text").attr("visibility","hidden")  
+                    const panel = d3.select("#panel");
+        
+                    restaurants.on("click", function() {
+                        panel.selectAll("text").remove()
+
+                        let name = d3.select(this).datum()["name"]
+
+                        label.text(name) 
+                            .attr("x", (d3.select(this).datum().position[0] + 10) ) 
+                            .attr("y",(d3.select(this).datum().position[1]) + 5)
+                            .attr("visibility", "visible")
+                            .style("font-weight", "bold")
+                            .style("background-color", "white")
+                       
+                        restaurant = d3.select(this).datum()
+                        let address = JSON.parse(restaurant["location_json"])['display_address'].join(", ")
+
+                        info = panel.append("text")
+
+                        info.text(restaurant["name"])
+                        .attr("x", 20).attr("y", 30)
+                        .style("font-weight", "bold")
+                        .style("font-size", 30)
+
+                        info.append("tspan")
+                        .text(restaurant["rating"]) // TODO: translate to stars
+                        .attr("x", 20).attr("dy", "2em")
+                        .style("font-weight", "lighter")
+                        .style("font-size", 15);
+
+                        info.append("tspan")
+                        .text(restaurant["neighborhood"])
+                        .attr("x", 20).attr("dy", "2em")
+                        .style("font-weight", "lighter")
+                        .style("font-size", 15)
+                    
+                        info.append("tspan")
+                        .text(address)
+                        .attr("x", 20).attr("dy", "2em")
+                        .style("font-weight", "lighter")
+                        .style("font-size", 15)
+
+                        info.append("tspan")
+                        .text(JSON.parse(restaurant["categories_json"])[0][0])
+                        .attr("x", 20).attr("dy", "2em")
+                        .style("font-weight", "lighter")
+                        .style("font-size", 15)
+                        .style("font-style", "italic")
+
+                        info.append("a")
+                        .attr("xlink:href", restaurant["url"]) 
+                        .append("tspan")
+                        .text(restaurant["url"])
+                        .attr("x", 20).attr("dy", "2em")
+                        .style("font-weight", "lighter")
+                        .style("font-size", 15)
+                        .style("fill", "blue")
+
+                        
+                    })
+                    
 
             } 
             requestData();
