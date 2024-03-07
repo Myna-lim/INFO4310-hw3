@@ -102,16 +102,44 @@
                         
                         });
 
-                let restaurants = map.selectAll("circle")
+                // let restaurants = map.selectAll("circle")
+                //     .data(yelp)
+                //     .join("circle")
+                //     .attr("class", "circle")
+                //     .attr("cx", d => d.position[0])
+                //     .attr("cy", d => d.position[1])
+                //     .attr("r", 10)
+                //     .attr("opacity", 0.5)
+                //     .attr("d", path)
+                //     .style("fill",  "blue");
+
+                let restaurants = map.selectAll(".circle")
+                      .data(yelp)
+                      .join("g")
+                      .attr("class", "circle");
+
+                  restaurants.append("circle")
+                      .attr("cx", d => d.position[0])
+                      .attr("cy", d => d.position[1])
+                      .attr("r", 10)
+                      .attr("opacity", 0.5)
+                      .attr("d", path)
+                      .style("fill", "blue");
+
+                  restaurants.append("text")
                     .data(yelp)
-                    .join("circle")
-                    .attr("class", "circle")
-                    .attr("cx", d => d.position[0])
-                    .attr("cy", d => d.position[1])
-                    .attr("r", 10)
-                    .attr("opacity", 0.5)
-                    .attr("d", path)
-                    .style("fill",  "blue");
+                    .join("g")
+                    .attr("x", d => d.position[0]) 
+                    .attr("y", d => d.position[1]) 
+                    .text(d => d.rating) 
+                    .attr("font-size", 13) 
+                    .style("text-anchor", "middle")
+                    .attr("class", "text");
+                    
+                  
+
+                
+                    
                             
                 var zoom = d3.zoom()
                             .scaleExtent([1,20])
@@ -166,14 +194,17 @@
 
                 function updateMap(foodCategory) {
                     const circles = map.selectAll("circle");
+                    const texts = map.selectAll("text");
                     circles.attr("visibility", "hidden");
+                    texts.attr("visibility", "hidden");
                     if (foodCategory === 'all'){
                         all_map("visible");
                     }
                     else{
                         all_map("hidden");
                         circles.filter(d => d["search_category"] === foodCategory)
-                        .attr("visibility", "visible");}
+                        .attr("visibility", "visible");
+                        texts.attr("visibility", "visible")};
                 
                         var zoom1 = d3.zoom()
                             .scaleExtent([1,20])
@@ -196,6 +227,8 @@
                               map.selectAll(".county")
                                           .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
                               circles.attr("r", 15 / transform.k);
+                              texts.attr("font-size", 13/transform.k);
+                              texts.attr("y", d => (d.position[1]+((15/transform.k)))-(10/transform.k));
                               images.attr("width", 30/transform.k).attr("height", 30/transform.k);
                         }
                       }
@@ -220,8 +253,8 @@
                         .attr("width", 30)
                         .attr("height", 30)
                         .attr("opacity", .6)
-                        .attr("x", d => d.position[0])
-                        .attr("y", d => d.position[1])
+                        .attr("x", d => d.position[0]-15)
+                        .attr("y", d => d.position[1]-15)
                         .attr("visibility", visibility);
 
                         var zoom1 = d3.zoom()
