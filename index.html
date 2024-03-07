@@ -80,7 +80,7 @@
                     .style("stroke-width", ".8px")
 
             const requestData = async function() {
-                let yelp = await d3.csv('yelp_boston.csv');
+                let yelp = await d3.csv('yelp_boston_preprocess.csv');
 
               
                 yelp.forEach( (d, i) => {
@@ -123,10 +123,8 @@
                 }
                 // FILTERING PANEL
 
-               foodCategories = ['restaurants', 'coffee', 'newamerican', 'french', 'sandwiches',
-                  'cafes', 'indpak', 'sushi', 'japanese', 'chinese', 'mexican',
-                  'thai', 'pizza', 'donuts', 'bakeries', 'italian', 'vietnamese',
-                  'ethnicmarkets']
+               foodCategories = ['all', 'cafe', 'american', 'asian', 'mexican', 'european',
+                  'ethnicmarkets', 'other']
 
                foodCategories.forEach(d => {
 
@@ -138,6 +136,9 @@
                     .on("click", function () {
                       d3.selectAll("button.category").style('background-color', "white").style("text-decoration", "none");
                       d3.select(this).style("background-color", "#fcc5c0").style("text-decoration", "underline");
+                      if (d === "all"){
+                        all_map();
+                      }
                       updateMap(d);
                      })
                    })
@@ -145,8 +146,40 @@
                 function updateMap(foodCategory) {
                     const circles = map.selectAll("circle");
                     circles.attr("visibility", "hidden");
-                    circles.filter(d => d["search category"] === foodCategory)
-                        .attr("visibility", "visible");
+                    if (foodCategory === 'all'){
+                        all_map("visible");
+                    }
+                    else{
+                        all_map("hidden");
+                        circles.filter(d => d["search_category"] === foodCategory)
+                        .attr("visibility", "visible");}
+                }
+
+                function all_map(visibility) {
+                    let images = map.selectAll("image")
+                        .data(yelp)
+                        .join("image")
+                        .attr("xlink:href", d => {
+                            // Define a mapping from categories to image URLs
+                            const categoryToImageUrl = {
+                                'cafe': 'coffee-cup.png',
+                                'american': 'burger.png',
+                                'asian': 'noodles.png',
+                                'mexican': 'taco.png',
+                                'european': 'pizza.png',
+                                'ethnicmarkets': 'market.png',
+                                'other': 'restaurant.png'
+                            };
+
+                            // Return the image URL based on the category of the data point
+                            // If the category is not in the map, return a default image path
+                            return categoryToImageUrl[d.search_category] || 'path/to/default/image.jpg';
+                        })
+                        .attr("width", 20)
+                        .attr("height", 20)
+                        .attr("x", d => d.position[0])
+                        .attr("y", d => d.position[1])
+                        .attr("visibility", visibility);
                 }
 
               //  ratings = [4.5, 4. , 5. , 3.5]
