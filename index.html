@@ -94,7 +94,7 @@
                     .attr("class", "circle")
                     .attr("cx", d => d.position[0])
                     .attr("cy", d => d.position[1])
-                    .attr("r", 4)
+                    .attr("r", 10)
                     .attr("opacity", 0.5)
                     .attr("d", path)
                     .style("fill",  "blue");
@@ -119,8 +119,11 @@
                       map.select(".county-outline")
                                   .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
                       map.selectAll(".county")
-                                  .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
+                                  .attr("visibility", (transform.k > 3) ? "visible" : "hidden");}
+                function call_transformk(){
+                      return d3.zoomTransform(map.node()).k;
                 }
+                
                 // FILTERING PANEL
 
                foodCategories = ['all', 'cafe', 'american', 'asian', 'mexican', 'european',
@@ -153,7 +156,30 @@
                         all_map("hidden");
                         circles.filter(d => d["search_category"] === foodCategory)
                         .attr("visibility", "visible");}
-                }
+                
+                        var zoom1 = d3.zoom()
+                            .scaleExtent([1,20])
+                            .translateExtent([[-50,-50],[mapWidth+50,mapHeight+50]])
+                            .on("zoom", mapZoomed1);
+
+                        map.call(zoom1);
+                        map.call(zoom1.transform, d3.zoomIdentity); 
+                        
+                        function mapZoomed1({transform}) {      
+                              map.attr("transform", transform.toString() );
+
+                              map.select(".state-outline")
+                                          .style("stroke-width", 2 / transform.k);
+                              map.select(".county-outline")
+                                          .style("stroke-width", 1 / transform.k)
+
+                              map.select(".county-outline")
+                                          .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
+                              map.selectAll(".county")
+                                          .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
+                              circles.attr("r", 15 / transform.k);
+                        }
+                      }
 
                 function all_map(visibility) {
                     let images = map.selectAll("image")
@@ -173,14 +199,41 @@
 
                             // Return the image URL based on the category of the data point
                             // If the category is not in the map, return a default image path
-                            return categoryToImageUrl[d.search_category] || 'path/to/default/image.jpg';
+                            return categoryToImageUrl[d.search_category];
                         })
-                        .attr("width", 20)
-                        .attr("height", 20)
+                        // .attr("width", 20)
+                        // .attr("height", 20)
                         .attr("x", d => d.position[0])
                         .attr("y", d => d.position[1])
                         .attr("visibility", visibility);
+
+                        var zoom1 = d3.zoom()
+                            .scaleExtent([1,20])
+                            .translateExtent([[-50,-50],[mapWidth+50,mapHeight+50]])
+                            .on("zoom", mapZoomed1);
+
+                        map.call(zoom1);
+                        map.call(zoom1.transform, d3.zoomIdentity); 
+                        
+                        function mapZoomed1({transform}) {      
+                              map.attr("transform", transform.toString() );
+
+                              map.select(".state-outline")
+                                          .style("stroke-width", 2 / transform.k);
+                              map.select(".county-outline")
+                                          .style("stroke-width", 1 / transform.k)
+
+                              map.select(".county-outline")
+                                          .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
+                              map.selectAll(".county")
+                                          .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
+                              map.selectAll("image").attr("height", 20 / transform.k);
+                              images.attr("width", 20 / transform.k);}
+                      
                 }
+
+
+              
 
               //  ratings = [4.5, 4. , 5. , 3.5]
 
@@ -213,8 +266,7 @@
                 let label = map.append("text").attr("visibility","hidden")    
 
                     restaurants.on("mouseover", function() {
-                        d3.select(this).attr("opacity", 1).attr("r", 8);
-                        
+                        d3.select(this).attr("opacity", 1).attr("r", 20 / call_transformk());
                         let name = d3.select(this).datum()["name"]
 
                         label.text(name) 
@@ -223,10 +275,11 @@
                             .attr("visibility", "visible")
                             .style("font-weight", "bold")
                             .style("background-color", "white")
+                            .style("font-size", 25/call_transformk())
                     });
 
                     restaurants.on("mouseout", function() {
-                        d3.select(this).attr("opacity",0.2).attr("r", 3)
+                        d3.select(this).attr("opacity",0.2).attr("r", 15 / call_transformk());
                         label.text(""); 
                     });   
 
@@ -294,7 +347,7 @@
                         
                     })
                     
-
+              
             } 
             requestData();
           </script>
