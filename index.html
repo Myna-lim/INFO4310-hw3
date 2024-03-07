@@ -1,5 +1,5 @@
 <html>
-    <h5 style="margin-bottom: 0px">Carly Hu (ch862) Myna Lim (ml2326) HW 3</h5>
+    <h5 style="margin-bottom: 0px">Carly Hu (ch862) & Myna Lim (ml2326) HW 3</h5>
     <h2 style="margin-top: 3px; margin-bottom: 0px;">FoodE</h2>
     <head>
         <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -10,6 +10,7 @@
     <style>
         * {
             font-family:Verdana, Geneva, Tahoma, sans-serif;
+            padding: 10px;
         }
 
     .neighbor_outline {
@@ -21,14 +22,36 @@
     .choropleth{
         margin-top: 0px;
     }
+    .filter{
+      height: 300;
+      width: 500;
+      padding: 20;
+    }
+    .right-panel{
+      display: flex;
+      flex-direction: column;
+    }
+    .all{
+      display: flex;
+      flex-direction: row;
+    }
     </style>
 
     <body>
 
         <p id="1_vis">
-            <svg id="choropleth" height="670" width="900"  style="margin:0px; border:1px solid gray; background-color:aliceblue" ></svg>
-            <svg id="panel" height="650" width="500"  style="margin:0px; border:1px solid gray; padding-top: 20px" ></svg>
-            <ul id="scales"></ul>
+          <div class = "all" >
+            <svg id="choropleth" height="670" width="900"  style="margin:10px; border:3px solid gray; background-color:aliceblue; border-radius: 8px" ></svg>
+            <div class = "right-panel">
+              <div id="filter" class = "filter">
+                <h3> Filter results:</h3>
+                <div id = "foodcategory-bar"> </div>
+                <div id = "rating-bar"> </div>
+              </div>
+              <svg id="panel" height="300" width="500"  style="margin:10px; border:3px solid gray; padding-top: 20px; border-radius: 8px" ></svg>
+            </div>
+          </div>
+            
           <script>
             const svg = d3.select("#choropleth");
             const map = svg.append("g");
@@ -57,19 +80,22 @@
                     .style("stroke-width", ".8px")
 
             const requestData = async function() {
-                const yelp = await d3.csv('yelp_boston.csv');
+                let yelp = await d3.csv('yelp_boston.csv');
 
+              
                 yelp.forEach( (d, i) => {
                         d.position = projection( [d.longitude, d.latitude] );
+                        
                         });
 
                 let restaurants = map.selectAll("circle")
                     .data(yelp)
                     .join("circle")
+                    .attr("class", "circle")
                     .attr("cx", d => d.position[0])
                     .attr("cy", d => d.position[1])
-                    .attr("r", 3)
-                    .attr("opacity", 0.2)
+                    .attr("r", 4)
+                    .attr("opacity", 0.5)
                     .attr("d", path)
                     .style("fill",  "blue");
 
@@ -95,11 +121,58 @@
                       map.selectAll(".county")
                                   .attr("visibility", (transform.k > 3) ? "visible" : "hidden");
                 }
-
                 // FILTERING PANEL
 
+               foodCategories = ['restaurants', 'coffee', 'newamerican', 'french', 'sandwiches',
+                  'cafes', 'indpak', 'sushi', 'japanese', 'chinese', 'mexican',
+                  'thai', 'pizza', 'donuts', 'bakeries', 'italian', 'vietnamese',
+                  'ethnicmarkets']
 
+               foodCategories.forEach(d => {
 
+                  d3.select("div#foodcategory-bar")
+                    .append("button")
+                    .attr("class", "category")
+                    .attr("id", `${d}`)
+                    .text(d)
+                    .on("click", function () {
+                      d3.selectAll("button.category").style('background-color', "white").style("text-decoration", "none");
+                      d3.select(this).style("background-color", "#fcc5c0").style("text-decoration", "underline");
+                      updateMap(d);
+                     })
+                   })
+
+                function updateMap(foodCategory) {
+                    const circles = map.selectAll("circle");
+                    circles.attr("visibility", "hidden");
+                    circles.filter(d => d["search category"] === foodCategory)
+                        .attr("visibility", "visible");
+                }
+
+              //  ratings = [4.5, 4. , 5. , 3.5]
+
+              //  ratings.forEach(d => {
+
+              //     d3.select("div#rating-bar")
+              //       .append("button")
+              //       .attr("class", "category")
+              //       .attr("id", `${d}`)
+              //       .text(d)
+              //       .on("click", function () {
+              //         d3.selectAll("button.category").style('background-color', "white").style("text-decoration", "none");
+              //         d3.select(this).style("background-color", "#fcc5c0").style("text-decoration", "underline");
+              //         updateRating(d);
+              //        })
+              //      })
+                   
+              //   function updateRating(rating) {
+              //       console.log(rating)
+              //       const circles = map.selectAll("circle");
+              //       circles.attr("visibility", "hidden");
+              //       circles.filter(d => d["rating"] === rating)
+              //           .attr("visibility", "visible");
+              //   }
+                
 
                 // RESTAURANT-SPECIFIC PANEL
                 // hover functionality
@@ -126,10 +199,10 @@
 
                 // click functionality
 
-                    let restaurant_info = map.append("text").attr("visibility","hidden")  
-                    const panel = d3.select("#panel");
-        
+                    
+                    
                     restaurants.on("click", function() {
+                        let panel = d3.select("#panel")
                         panel.selectAll("text").remove()
 
                         let name = d3.select(this).datum()["name"]
@@ -144,7 +217,7 @@
                         restaurant = d3.select(this).datum()
                         let address = JSON.parse(restaurant["location_json"])['display_address'].join(", ")
 
-                        info = panel.append("text")
+                        let info = panel.append("text")
 
                         info.text(restaurant["name"])
                         .attr("x", 20).attr("y", 30)
