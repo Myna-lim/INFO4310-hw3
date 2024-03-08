@@ -1,6 +1,7 @@
 <html>
-    <h5 style="margin-bottom: 0px">Carly Hu (ch862) & Myna Lim (ml2326) HW 3</h5>
-    <h1 style="margin-top: 10px; margin-bottom: 0px;"> FoodE </h1>
+    <h1 style="margin-top: 0px; margin-bottom: 0px; font-size: 60"> <i>bite into</i> boston &#127857</h1>
+    <p style="margin-bottom: 30px">info 4310 homework 3 - Carly Hu (ch862) & Myna Lim (ml2326) </p>
+
     <head>
         <script src="https://d3js.org/d3.v7.min.js"></script>
         <script src="https://d3js.org/topojson.v3.min.js"></script>
@@ -9,12 +10,13 @@
     </head>
     <style>
         * {
-            font-family:Verdana, Geneva, Tahoma, sans-serif;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif
         }
 
         body{
           padding: 20px;
           background-color: #aeccfc;
+          color: darkblue;
  
         }
         .neighbor_outline {
@@ -42,7 +44,8 @@
         .category{
           padding: 10px;
           margin: 5px;
-          border-radius: 10px;
+          border-radius: 13px;
+          font-size: 30px;
         }
         .foodcategory-bar{
           display: flex;
@@ -54,14 +57,16 @@
 
         <p id="1_vis">
           <div class = "all" >
-            <svg id="choropleth" height="670" width="900" style="margin:10px; background-color:aliceblue; border-radius: 8px;" ></svg>
+            <div>
+            <svg id="choropleth" height="610" width="850" style="margin-right:20px; background-color:aliceblue; border-radius: 15px;" ></svg>
+          </div>
             <div class = "right-panel">
               <div id="filter" class = "filter">
-                <h3> filter results:</h3>
+                <h2> filter results:</h2>
                 <div id = "foodcategory-bar"> </div>
-                <div id = "rating-bar"> </div>
+                <p id = "hint" style = "margin-top: 30px; font-size: 20"><i>click on an icon to view restaurant details!</i>  </p>
               </div>
-              <svg id="panel" height="300" width="500"  style="margin: 20px; padding-top: 20px; border-radius: 8px; background-color: aliceblue; visibility: hidden" ></svg>
+              <svg id="panel" height="230" width="480"  style="margin: 20px; margin-top:0px; padding: 18px; border-radius: 15px; background-color: aliceblue; visibility: hidden" ></svg>
             </div>
           </div>
             
@@ -87,7 +92,7 @@
                     .data(neighborhoods_json.features)
                     .enter()
                     .append('path')
-                    .attr('fill', '#ccc')
+                    .attr('fill', '#cccc')
                     .attr('d', path)
                     .style("stroke", "black")
                     .style("stroke-width", ".8px")
@@ -101,17 +106,6 @@
                         d.position = projection( [d.longitude, d.latitude] );
                         
                         });
-
-                // let restaurants = map.selectAll("circle")
-                //     .data(yelp)
-                //     .join("circle")
-                //     .attr("class", "circle")
-                //     .attr("cx", d => d.position[0])
-                //     .attr("cy", d => d.position[1])
-                //     .attr("r", 10)
-                //     .attr("opacity", 0.5)
-                //     .attr("d", path)
-                //     .style("fill",  "blue");
 
                 let restaurants = map.selectAll(".circle")
                       .data(yelp)
@@ -170,8 +164,7 @@
                 
            // FILTERING PANEL
 
-               foodCategories = ['all', 'cafe', 'american', 'asian', 'mexican', 'european',
-                  'ethnicmarkets', 'other']
+               foodCategories = ['all', 'cafe', 'american', 'asian', 'mexican', 'european','other']
 
                foodCategories.forEach(d => {
 
@@ -247,7 +240,6 @@
                                 'asian': 'noodles.png',
                                 'mexican': 'taco.png',
                                 'european': 'pizza.png',
-                                'ethnicmarkets': 'market.png',
                                 'other': 'restaurant.png'
                             };
                             return categoryToImageUrl[d.search_category];
@@ -289,10 +281,12 @@
                 let label = map.append("text").attr("visibility","hidden")    
 
                     // for dots
-                    restaurants.attr("class", "data_hover");
+                    
                     texts.attr("class", "data_hover");
+                    restaurants.attr("class", "data_hover");
 
                     d3.selectAll(".data_hover").on("mouseover", function() {
+                        d3.select(this).style("cursor", "pointer");
                         d3.select(this).select("circle").attr("opacity", 1).attr("r", 20 / call_transformk());
                         let name = d3.select(this).datum()["name"]
 
@@ -312,11 +306,12 @@
 
                     // for images 
                     images.on("mouseover", function() {
+                        d3.select(this).style("cursor", "pointer");
                         d3.select(this).attr("opacity", 1)
                         let name = d3.select(this).datum()["name"]
                         label.text(name) 
-                            .attr("x", (d3.select(this).datum().position[0]) + 35/call_transformk()) 
-                            .attr("y",(d3.select(this).datum().position[1]) + 20/call_transformk())
+                            .attr("x", (d3.select(this).datum().position[0]) + 20/call_transformk()) 
+                            .attr("y",(d3.select(this).datum().position[1]) + 5/call_transformk())
                             .attr("visibility", "visible")
                             .style("font-weight", "bold")
                             .style("background-color", "white")
@@ -329,7 +324,7 @@
 
                 // click functionality --> triggers info panel
                 d3.selectAll(".data_hover").on("click", function() {
-                        
+                        d3.select("#hint").style("visibility","hidden")
                         let panel = d3.select("#panel")
                         panel.selectAll("text").remove()
                         panel.style("visibility","visible")
@@ -348,18 +343,19 @@
 
                         let info = panel.append("text")
 
-                        info.text(restaurant["name"]).attr("x", 20).attr("y", 30).style("font-weight", "bold").style("font-size", 30)
-                        info.append("tspan").text(restaurant["rating"]) // TODO: translate to stars
-                        .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15);
-                        info.append("tspan").text(restaurant["neighborhood"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15)
-                        info.append("tspan").text(address).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15)
+                        info.text(restaurant["name"]).attr("x", 20).attr("y", 25).style("font-weight", "bold").style("font-size", 30)
+                        info.append("tspan").text("Rating: "+restaurant["rating"]+" ("+restaurant["review_count"]+ " reviews)").attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
+                        info.append("tspan").text(restaurant["neighborhood"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
+                        info.append("tspan").text(address).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
                         info.append("tspan").text(JSON.parse(restaurant["categories_json"])[0][0])
-                        .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15).style("font-style", "italic")
+                        .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("font-style", "italic")
                         info.append("a").attr("xlink:href", restaurant["url"]) 
-                        .append("tspan").text(restaurant["url"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15).style("fill", "blue")
+                        .append("tspan").text(restaurant["url"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("fill", "blue")
                     })
 
                     images.on("click", function() {
+                      d3.select("#hint").style("visibility","hidden")
+
                         let panel = d3.select("#panel")
                         panel.selectAll("text").remove()
                         panel.style("visibility","visible")
@@ -367,8 +363,8 @@
                         let name = d3.select(this).datum()["name"]
 
                         label.text(name) 
-                            .attr("x", (d3.select(this).datum().position[0] + 35/call_transformk()) ) 
-                            .attr("y",(d3.select(this).datum().position[1]) + 20/call_transformk())
+                            .attr("x", (d3.select(this).datum().position[0] + 20/call_transformk()) ) 
+                            .attr("y",(d3.select(this).datum().position[1]) + 5/call_transformk())
                             .attr("visibility", "visible")
                             .style("font-weight", "bold")
                             .style("background-color", "white")
@@ -377,15 +373,15 @@
                         let address = JSON.parse(restaurant["location_json"])['display_address'].join(", ")
 
                         let info = panel.append("text")
-                        info.text(restaurant["name"]).attr("x", 20).attr("y", 30).style("font-weight", "bold").style("font-size", 30)
-                        info.append("tspan").text(restaurant["rating"]) // TODO: translate to stars
-                        .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15);
-                        info.append("tspan").text(restaurant["neighborhood"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15)
-                        info.append("tspan").text(address).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15)
+                        info.text(restaurant["name"]).attr("x", 20).attr("y", 25).style("font-weight", "bold").style("font-size", 30)
+                        info.append("tspan").text("Rating: "+restaurant["rating"]+" ("+restaurant["review_count"]+ " reviews)").attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
+                        .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20);
+                        info.append("tspan").text(restaurant["neighborhood"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
+                        info.append("tspan").text(address).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
                         info.append("tspan").text(JSON.parse(restaurant["categories_json"])[0][0])
-                        .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15).style("font-style", "italic")
+                        .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("font-style", "italic")
                         info.append("a").attr("xlink:href", restaurant["url"]) 
-                        .append("tspan").text(restaurant["url"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 15).style("fill", "blue")
+                        .append("tspan").text(restaurant["url"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("fill", "blue")
 
                     })
                    
