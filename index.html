@@ -293,7 +293,7 @@
                     texts.attr("class", "data_hover");
 
                     d3.selectAll(".data_hover").on("mouseover", function() {
-                        d3.select(this).attr("opacity", 1).attr("r", 20 / call_transformk());
+                        d3.select(this).select("circle").attr("opacity", 1).attr("r", 20 / call_transformk());
                         let name = d3.select(this).datum()["name"]
 
                         label.text(name) 
@@ -305,7 +305,7 @@
                             .style("font-size", 15/call_transformk())
                     });
                     d3.selectAll(".data_hover").on("mouseout", function() {
-                        d3.select(this).attr("opacity",0.5).attr("r", 15 / call_transformk());
+                        d3.select(this).select("circle").attr("opacity",0.5).attr("r", 15 / call_transformk());
                         label.text(""); 
                     });   
 
