@@ -54,7 +54,7 @@
 
         <p id="1_vis">
           <div class = "all" >
-            <svg id="choropleth" height="670" width="900"  style="margin:10px; background-color:aliceblue; border-radius: 8px" ></svg>
+            <svg id="choropleth" height="670" width="900" style="margin:10px; background-color:aliceblue; border-radius: 8px;" ></svg>
             <div class = "right-panel">
               <div id="filter" class = "filter">
                 <h3> filter results:</h3>
@@ -124,14 +124,16 @@
                       .attr("r", 10)
                       .attr("opacity", 0.5)
                       .attr("d", path)
-                      .style("fill", "blue");
+                      .style("fill", "darkblue");
 
-                  restaurants.append("text")
+                  let texts = map.selectAll("text")
                     .data(yelp)
                     .join("g")
+                    .append("text")
                     .attr("x", d => d.position[0]) 
                     .attr("y", d => d.position[1]) 
                     .text(d => d.rating) 
+                    .attr("fill", "white")
                     .attr("font-size", 13) 
                     .style("text-anchor", "middle")
                     .attr("class", "text");
@@ -194,7 +196,7 @@
 
                 function updateMap(foodCategory) {
                     const circles = map.selectAll("circle");
-                    const texts = map.selectAll("text");
+                    //const texts = map.selectAll("text");
                     circles.attr("visibility", "hidden");
                     texts.attr("visibility", "hidden");
                     if (foodCategory === 'all'){
@@ -204,7 +206,7 @@
                         all_map("hidden");
                         circles.filter(d => d["search_category"] === foodCategory)
                         .attr("visibility", "visible");
-                        texts.attr("visibility", "visible")};
+                        texts.filter(d => d["search_category"] === foodCategory).attr("visibility", "visible")};
                 
                         var zoom1 = d3.zoom()
                             .scaleExtent([1,20])
@@ -287,7 +289,10 @@
                 let label = map.append("text").attr("visibility","hidden")    
 
                     // for dots
-                    restaurants.on("mouseover", function() {
+                    restaurants.attr("class", "data_hover");
+                    texts.attr("class", "data_hover");
+
+                    d3.selectAll(".data_hover").on("mouseover", function() {
                         d3.select(this).attr("opacity", 1).attr("r", 20 / call_transformk());
                         let name = d3.select(this).datum()["name"]
 
@@ -299,7 +304,7 @@
                             .style("background-color", "white")
                             .style("font-size", 15/call_transformk())
                     });
-                    restaurants.on("mouseout", function() {
+                    d3.selectAll(".data_hover").on("mouseout", function() {
                         d3.select(this).attr("opacity",0.5).attr("r", 15 / call_transformk());
                         label.text(""); 
                     });   
@@ -323,7 +328,7 @@
                     });   
 
                 // click functionality --> triggers info panel
-                    restaurants.on("click", function() {
+                d3.selectAll(".data_hover").on("click", function() {
                         
                         let panel = d3.select("#panel")
                         panel.selectAll("text").remove()
