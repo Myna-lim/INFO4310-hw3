@@ -71,6 +71,7 @@
           </div>
             
           <script>
+            // building map
             const svg = d3.select("#choropleth");
             const map = svg.append("g");
             const width = svg.attr("width");
@@ -78,8 +79,6 @@
             const margin = { top: 100, right: 20, bottom: 20, left:0};
             const mapWidth = width - margin.left - margin.right;
             const mapHeight = height - margin.top - margin.bottom;
-
-            let annotations = svg.append("g").attr("id","annotations");
 
             var projection = d3.geoAlbers()
                                         .scale(190000)
@@ -96,16 +95,11 @@
                     .attr('d', path)
                     .style("stroke", "black")
                     .style("stroke-width", ".8px")
-
             
             const requestData = async function() {
                 let yelp = await d3.csv('yelp_boston_preprocess.csv');
 
-              
-                yelp.forEach( (d, i) => {
-                        d.position = projection( [d.longitude, d.latitude] );
-                        
-                        });
+                yelp.forEach( (d, i) => { d.position = projection( [d.longitude, d.latitude] ); });
 
                 let restaurants = map.selectAll(".circle")
                       .data(yelp)
@@ -120,6 +114,7 @@
                       .attr("d", path)
                       .style("fill", "darkblue");
 
+                  // rating labels on circles
                   let texts = map.selectAll("text")
                     .data(yelp)
                     .join("g")
@@ -131,12 +126,8 @@
                     .attr("font-size", 13) 
                     .style("text-anchor", "middle")
                     .attr("class", "text");
-                    
-                  
-
-                
-                    
-                            
+                     
+                // during map zoom
                 var zoom = d3.zoom()
                             .scaleExtent([1,20])
                             .translateExtent([[-50,-50],[mapWidth+50,mapHeight+50]])
@@ -144,7 +135,7 @@
 
                 map.call(zoom);
                 map.call(zoom.transform, d3.zoomIdentity); 
-                
+
                 function mapZoomed({transform}) {      
                       map.attr("transform", transform.toString() );
 
@@ -166,8 +157,8 @@
 
                foodCategories = ['all', 'cafe', 'american', 'asian', 'mexican', 'european','other']
 
+               // creating button bar
                foodCategories.forEach(d => {
-
                   d3.select("div#foodcategory-bar")
                     .append("button")
                     .attr("class", "category")
@@ -178,18 +169,18 @@
                       d3.select(this).style("background-color", "#80acf2")
                       if (d === "all"){
                         all_map();
+                        d3.select(this).style("width", "100")
                       }
                       updateMap(d);
                      })
                    })
-
                    d3.select("#all").dispatch("click");
 
                 let images = map.selectAll("image")
 
+                // update map based on selected button
                 function updateMap(foodCategory) {
                     const circles = map.selectAll("circle");
-                    //const texts = map.selectAll("text");
                     circles.attr("visibility", "hidden");
                     texts.attr("visibility", "hidden");
                     if (foodCategory === 'all'){
@@ -303,8 +294,7 @@
                         label.text(""); 
                     });   
 
-
-                    // for images 
+                    // for food icons 
                     images.on("mouseover", function() {
                         d3.select(this).style("cursor", "pointer");
                         d3.select(this).attr("opacity", 1)
@@ -324,6 +314,7 @@
 
                 // click functionality --> triggers info panel
                 d3.selectAll(".data_hover").on("click", function() {
+                        // for dots
                         d3.select("#hint").style("visibility","hidden")
                         let panel = d3.select("#panel")
                         panel.selectAll("text").remove()
@@ -349,10 +340,10 @@
                         info.append("tspan").text(address).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
                         info.append("tspan").text(JSON.parse(restaurant["categories_json"])[0][0])
                         .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("font-style", "italic")
-                        info.append("a").attr("xlink:href", restaurant["url"]) 
-                        .append("tspan").text(restaurant["url"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("fill", "blue")
+                        info.append("a").attr("xlink:href", restaurant["url"]).append("tspan").text("View on Yelp").attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("fill", "blue").style("text-decoration", "underline")
                     })
 
+                    // click functionality for food icons
                     images.on("click", function() {
                       d3.select("#hint").style("visibility","hidden")
 
@@ -374,14 +365,11 @@
 
                         let info = panel.append("text")
                         info.text(restaurant["name"]).attr("x", 20).attr("y", 25).style("font-weight", "bold").style("font-size", 30)
-                        info.append("tspan").text("Rating: "+restaurant["rating"]+" ("+restaurant["review_count"]+ " reviews)").attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
-                        .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20);
+                        info.append("tspan").text("Rating: "+restaurant["rating"]+" ("+restaurant["review_count"]+ " reviews)").attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20);
                         info.append("tspan").text(restaurant["neighborhood"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
                         info.append("tspan").text(address).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20)
-                        info.append("tspan").text(JSON.parse(restaurant["categories_json"])[0][0])
-                        .attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("font-style", "italic")
-                        info.append("a").attr("xlink:href", restaurant["url"]) 
-                        .append("tspan").text(restaurant["url"]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("fill", "blue")
+                        info.append("tspan").text(JSON.parse(restaurant["categories_json"])[0][0]).attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("font-style", "italic")
+                        info.append("a").attr("xlink:href", restaurant["url"]).append("tspan").text("View on Yelp").attr("x", 20).attr("dy", "2em").style("font-weight", "lighter").style("font-size", 20).style("fill", "blue").style("text-decoration", "underline")
 
                     })
                    
